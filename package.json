@@ -1,0 +1,32 @@
+{
+  "name": "fitbit-app",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@fitbit/sdk": "~6.1.0",
+    "@fitbit/sdk-cli": "^1.7.3"
+  },
+  "fitbit": {
+    "appUUID": "0cc9ab23-bca0-486b-a17e-4309a17568d9",
+    "appType": "clockface",
+    "appDisplayName": "cWatch",
+    "iconFile": "resources/icon.png",
+    "wipeColor": "#ffffff",
+    "requestedPermissions": [],
+    "buildTargets": [
+      "atlas"
+    ],
+    "i18n": {},
+    "defaultLanguage": "en-US",
+    "requestedPermissions": [
+      "access_internet",
+      "access_heart_rate",
+      "run_background"
+    ]
+  },
+  "scripts": {
+    "build": "fitbit-build",
+    "debug": "fitbit"
+  }
+}

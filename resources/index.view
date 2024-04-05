@@ -1,0 +1,4 @@
+<svg class="background">
+  <image href="watch.png" />
+  <text id="heartRate" />
+</svg>
