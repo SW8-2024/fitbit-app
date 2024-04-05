@@ -1,5 +1,5 @@
-.background {
-  viewport-fill: red;
+#background {
+  fill: red;
 }
 
 #heartRate {
@@ -9,5 +9,25 @@
   text-anchor: middle;
   x: 50%;
   y: 50%+40;
+  fill: #ffffff;
+}
+
+#clock {
+  font-size: 80;
+  font-family: System-Bold;
+  text-length: 32;
+  text-anchor: middle;
+  x: 50%;
+  y: 30%;
+  fill: #ffffff;
+}
+
+#status {
+  font-size: 26;
+  font-family: System-Bold;
+  text-length: 32;
+  text-anchor: middle;
+  x: 50%;
+  y: 90%;
   fill: #ffffff;
 }
