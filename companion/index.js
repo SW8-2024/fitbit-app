@@ -23,32 +23,45 @@ function postHeartRate(api, data) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-async function login(api) {
+async function login(api, watchKey) {
     const data = {
         status: "",
         authToken: ""
     }
 
-    await sleep(1000); // simulate time to response 
+    //await sleep(1000); // simulate time to response 
     return fetch(api, {
-        method: "GET",
+        method: "POST",
         headers: {
-            "Content-type": "application/json"
-        }
+            "accept": "*/*",
+            "Content-type": "application/json",
+        },
+        body: JSON.stringify({ token: watchKey })
     }).then(async (res) => {
+        const result = await res.text();
         if (res.ok) {
-            const result = await res.text();
             return data = {
                 status: res.status,
-                authToken: JSON.parse(result).name
+                authToken: JSON.parse(result)
+            };
+        } else if (res.status == 504) {
+            return data = {
+                status: res.status,
+                authToken: "Gateway Time-out"
             };
         } else {
             return data = {
                 status: res.status,
-                authToken: ""
+                authToken: JSON.parse(result)
             };
         }
-    })
+    }).catch((err) => {
+        console.error(err);
+        return data = {
+            status: err,
+            authToken: ""
+        };
+    });
 }
 
 messaging.peerSocket.addEventListener("message", async (evt) => {
@@ -56,7 +69,7 @@ messaging.peerSocket.addEventListener("message", async (evt) => {
     if (evt.data.login) {
         console.error("Login event received");
         console.error("Loging key: " + evt.data.key);
-        const res = await login("https://rickandmortyapi.com/api/character/1");
+        const res = await login("https://chillchaser.ovh/api/watch/login", evt.data.key);
         messaging.peerSocket.send(res);
     } else {
         console.error("Data event received");

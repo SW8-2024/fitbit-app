@@ -5,8 +5,21 @@ import { HeartRateSensor } from "heart-rate";
 import { clock } from "clock";
 import { me as appbit } from "appbit";
 
+const backgroundElement = document.getElementById("background");
+const statusElement = document.getElementById("status");
+
+const clockElement = document.getElementById("clock");
+const heartRateElement = document.getElementById("heartRate");
+
+const buttonElement = document.getElementById("dataToggle");
+const loginButtonElement = document.getElementById("loginButton");
+
 let sendingData = false;
 let loggedIn = false;
+let loginWait = false;
+let token;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 if (!appbit.permissions.granted("access_heart_rate")) {
     console.log("We're not allowed to read a users' heart rate!");
@@ -14,19 +27,24 @@ if (!appbit.permissions.granted("access_heart_rate")) {
 
 messaging.peerSocket.addEventListener("open", (evt) => {
     console.log("Connection opened");
-});
+})
 
 messaging.peerSocket.addEventListener("error", (err) => {
     console.error(`Connection error: ${err.code} - ${err.message}`);
 })
 
-messaging.peerSocket.addEventListener("message", (evt) => {
+messaging.peerSocket.addEventListener("message", async (evt) => {
     console.error("Data from companion received");
     if (evt.data.status == 200) {
+        loggedIn = true;
         console.error("Logged in: " + evt.data.status + " " + evt.data.authToken);
     } else {
-        console.error("Not logged in: " + evt.data.status);
+        await sleep(1000);
+        loggedIn = true;
+        console.error("Not logged in: " + evt.data.status + " " + evt.data.authToken);
     }
+
+    loginWait = false;
 })
 
 function randomKey() {
@@ -77,16 +95,13 @@ function formatTime(date, clock = false) {
 }
 
 // Clock
-clock.granularity = "seconds";
-
-const clockElement = document.getElementById("clock");
 let today;
 
+clock.granularity = "seconds";
 clock.addEventListener("tick", (evt) => {
     today = evt.date;
     if (loggedIn) { clockElement.text = formatTime(today, true); }
 });
-
 
 // Heart Rate
 function sendHeartRateData(heartRate) {
@@ -100,32 +115,40 @@ function sendHeartRateData(heartRate) {
     }
 }
 
-const element = document.getElementById("heartRate");
-
 if (HeartRateSensor) {
     const hrm = new HeartRateSensor({ frequency: 1});
     hrm.addEventListener("reading", () => {
-        if (!loggedIn) {
-            element.text = randomKey();
+        if (!loginWait) { token = randomKey(); }
+
+        if (!loginWait && !loggedIn) {
+            heartRateElement.text = token;
+        } else if (loginWait && !loggedIn) {
+            heartRateElement.text = token;
+            loginButtonElement.style.display = "none";
+            statusElement.text = "Write key in app to pair.."
         } else {
-            element.text = hrm.heartRate;
-            if (sendingData) { sendHeartRateData(hrm.heartRate); };
+            heartRateElement.text = hrm.heartRate;
+            if (sendingData) {
+                sendHeartRateData(hrm.heartRate); 
+            } else {
+                backgroundElement.style.fill = "red";
+                statusElement.text = "Tab to send data";
+            }
         }
     });
+
     hrm.start();
+
 } else {
     console.log("This device does not have a HeartRateSeonsor!");
 }
 
 // Toggle data transfer
-const buttonElement = document.getElementById("dataToggle");
-const backgroundElement = document.getElementById("background");
-const statusElement = document.getElementById("status");
-
 buttonElement.addEventListener("click", (evt) => {
     if (loggedIn) {
         sendingData = !sendingData;
         
+        // Keep for responsiveness 
         if (sendingData) {
             backgroundElement.style.fill = "green";
             statusElement.text = "Transmitting data"
@@ -137,19 +160,14 @@ buttonElement.addEventListener("click", (evt) => {
 })
 
 // Toggle login button
-const loginButtonElement = document.getElementById("loginButton");
-
-loginButtonElement.addEventListener("click", (evt) => {
+loginButtonElement.addEventListener("click", async (evt) => {
     const data = {
         login: true,
-        key: randomKey()
+        key: token
     }
 
     if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
+        loginWait = true;
         messaging.peerSocket.send(data);
     }
-    
-    loggedIn = true;
-    backgroundElement.style.fill = "red";
-    loginButtonElement.style.display = "none";
 })
