@@ -17,7 +17,7 @@ const loginButtonElement = document.getElementById("loginButton");
 let sendingData = false;
 let loggedIn = false;
 let loginWait = false;
-let token;
+let token = "";
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -37,11 +37,10 @@ messaging.peerSocket.addEventListener("message", async (evt) => {
     console.error("Data from companion received");
     if (evt.data.status == 200) {
         loggedIn = true;
-        console.error("Logged in: " + evt.data.status + " " + evt.data.authToken);
+        console.error("Logged in: " + evt.data.status + " " + evt.data.msg);
     } else {
-        await sleep(1000);
-        loggedIn = true;
-        console.error("Not logged in: " + evt.data.status + " " + evt.data.authToken);
+        loggedIn = false;
+        console.error("Not logged in: " + evt.data.status + " " + evt.data.msg);
     }
 
     loginWait = false;
@@ -59,21 +58,10 @@ function randomKey() {
     return key;
 }
 
-function formatTime(date, clock = false) {
-    let year = date.getFullYear();
-    let month = date.getMonth();
-    let day = date.getDate();
+function formatTime(date) {
     let hours = date.getHours();
     let mins = date.getMinutes();
     let secs = date.getSeconds();
-
-    if (month < 10) {
-        month = `0${month}`;
-    }
-
-    if (day < 10) {
-        day = `0${day}`;
-    }
 
     if (hours < 10) {
         hours = `0${hours}`;
@@ -87,27 +75,22 @@ function formatTime(date, clock = false) {
         secs = `0${secs}`;
     }
 
-    if (clock) {
-        return `${hours}:${mins}:${secs}`;
-    }
-
-    return `${year}-${month}-${day} ${hours}:${mins}:${secs}`;
+    return `${hours}:${mins}:${secs}`;
 }
 
 // Clock
-let today;
-
 clock.granularity = "seconds";
 clock.addEventListener("tick", (evt) => {
-    today = evt.date;
-    if (loggedIn) { clockElement.text = formatTime(today, true); }
+    if (loggedIn) { clockElement.text = formatTime(evt.date); }
 });
 
 // Heart Rate
 function sendHeartRateData(heartRate) {
+    let dateTimeNow = new Date();
+
     const data = {
-        dateTime: formatTime(today),
-        heartRate: heartRate
+        bpm: heartRate,
+        dateTime: new Date(dateTimeNow.getTime() - (dateTimeNow.getTimezoneOffset() * 60000)).toISOString()
     }
     
     if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
@@ -122,6 +105,7 @@ if (HeartRateSensor) {
 
         if (!loginWait && !loggedIn) {
             heartRateElement.text = token;
+            loginButtonElement.style.display = "inline";
         } else if (loginWait && !loggedIn) {
             heartRateElement.text = token;
             loginButtonElement.style.display = "none";
@@ -151,7 +135,7 @@ buttonElement.addEventListener("click", (evt) => {
         // Keep for responsiveness 
         if (sendingData) {
             backgroundElement.style.fill = "green";
-            statusElement.text = "Transmitting data"
+            statusElement.text = "Transmitting data";
         } else {
             backgroundElement.style.fill = "red";
             statusElement.text = "Tab to send data"
@@ -163,7 +147,7 @@ buttonElement.addEventListener("click", (evt) => {
 loginButtonElement.addEventListener("click", async (evt) => {
     const data = {
         login: true,
-        key: token
+        token: token
     }
 
     if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {

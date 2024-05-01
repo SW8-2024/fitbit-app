@@ -1,35 +1,52 @@
 import { me as companion } from "companion";
 import * as messaging from "messaging";
 
+let authToken = "";
+
 if (!companion.permissions.granted("access_internet")) {
     console.log("We're not allowed to access the internet!");
 }
 
-function postHeartRate(api, data) {
-    fetch(api, {
+// TODO: Delete
+// Used for testing
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function postHeartRate(api, data) {
+    return fetch(api, {
         method: "POST",
         headers: {
-            "Content-type": "application/json"
+            "accept": "*/*",
+            "Content-type": "application/json",
+            "Authorization": "Bearer " + authToken
         },
         body: JSON.stringify(data)
     }).then((res) => {
         if (res.ok) {
-            res.text().then(text => console.log(text))
+            return data = {
+                status: res.status,
+                msg: "OK"
+            };
         } else {
-            console.log("error")
+            return data = {
+                status: res.status,
+                msg: "Error"
+            };
         }
-    })
+    }).catch((err) => {
+        console.error(err);
+        return data = {
+            status: err,
+            msg: "Error"
+        };
+    });
 }
-
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 async function login(api, watchKey) {
     const data = {
         status: "",
-        authToken: ""
+        msg: ""
     }
 
-    //await sleep(1000); // simulate time to response 
     return fetch(api, {
         method: "POST",
         headers: {
@@ -42,39 +59,38 @@ async function login(api, watchKey) {
         if (res.ok) {
             return data = {
                 status: res.status,
-                authToken: JSON.parse(result)
+                msg: JSON.parse(result).accessToken
             };
         } else if (res.status == 504) {
             return data = {
                 status: res.status,
-                authToken: "Gateway Time-out"
+                msg: "Gateway Time-out"
             };
         } else {
             return data = {
                 status: res.status,
-                authToken: JSON.parse(result)
+                msg: JSON.parse(result)
             };
         }
     }).catch((err) => {
         console.error(err);
         return data = {
             status: err,
-            authToken: ""
+            msg: "Error"
         };
     });
 }
 
 messaging.peerSocket.addEventListener("message", async (evt) => {
-
     if (evt.data.login) {
-        console.error("Login event received");
-        console.error("Loging key: " + evt.data.key);
-        const res = await login("https://chillchaser.ovh/api/watch/login", evt.data.key);
-        messaging.peerSocket.send(res);
+        console.error("Login event received: " + evt.data.token);
+        const res = await login("https://chillchaser.ovh/api/watch/login", evt.data.token);
+        
+        // Setting authToken to the received value
+        authToken = res.msg;
+        messaging.peerSocket.send(res); //TODO: Dont need to send the token back to the watch
     } else {
-        console.error("Data event received");
-        console.error(JSON.stringify(evt.data));
-        //postHeartRate("https://localhost:8080/api/data/heart-rate", evt.data)
-        //getData("https://rickandmortyapi.com/api/character/1")
+        const res = await postHeartRate("https://chillchaser.ovh/api/DataCollection/heartRate", evt.data);
+        console.error(`Post ${JSON.stringify(evt.data)} ${res.status} ${res.msg}`);
     }
 });
