@@ -1,5 +1,5 @@
 #background {
-  fill: red;
+  fill: blue;
 }
 
 #heartRate {
@@ -30,4 +30,12 @@
   x: 50%;
   y: 90%;
   fill: #ffffff;
+}
+
+.application-fill           { fill: fb-mint; }
+.foreground-fill            { fill: fb-white; }
+.background-fill            { fill: fb-black; }
+
+#loginButton #text {
+  text-buffer: "Login";
 }
