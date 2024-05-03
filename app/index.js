@@ -50,9 +50,8 @@ function randomKey() {
     let key = new Uint16Array(1);
     getRandomValues(key);
 
-    key = Number(key).toString();
-    if (key.length != 5) { 
-        return randomKey(); 
+    while (Number(key).toString().length < 5) { 
+        getRandomValues(key);
     }
 
     return key;
