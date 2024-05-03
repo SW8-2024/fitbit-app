@@ -147,7 +147,7 @@ loginButtonElement.addEventListener("click", async (evt) => {
         token: token
     }
 
-    if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
+    if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN && !loginWait) {
         loginWait = true;
         messaging.peerSocket.send(data);
     }
