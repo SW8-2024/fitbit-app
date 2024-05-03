@@ -122,7 +122,7 @@ if (HeartRateSensor) {
     hrm.start();
 
 } else {
-    console.error("This device does not have a HeartRateSeonsor!");
+    console.error("This device does not have a HeartRateSensor!");
 }
 
 // Toggle data transfer
