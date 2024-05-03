@@ -22,11 +22,11 @@ let token = "";
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 if (!appbit.permissions.granted("access_heart_rate")) {
-    console.log("We're not allowed to read a users' heart rate!");
+    console.error("We're not allowed to read a users' heart rate!");
 }
 
 messaging.peerSocket.addEventListener("open", (evt) => {
-    console.log("Connection opened");
+    console.error("Connection opened");
 })
 
 messaging.peerSocket.addEventListener("error", (err) => {
@@ -34,13 +34,13 @@ messaging.peerSocket.addEventListener("error", (err) => {
 })
 
 messaging.peerSocket.addEventListener("message", async (evt) => {
-    console.error("Data from companion received");
+    console.log("Data from companion received");
     if (evt.data.status == 200) {
         loggedIn = true;
-        console.error("Logged in: " + evt.data.status + " " + evt.data.msg);
+        console.log("Logged in: " + evt.data.status + " " + evt.data.msg);
     } else {
         loggedIn = false;
-        console.error("Not logged in: " + evt.data.status + " " + evt.data.msg);
+        console.log("Not logged in: " + evt.data.status + " " + evt.data.msg);
     }
 
     loginWait = false;
@@ -101,9 +101,8 @@ function sendHeartRateData(heartRate) {
 if (HeartRateSensor) {
     const hrm = new HeartRateSensor({ frequency: 1});
     hrm.addEventListener("reading", () => {
-        if (!loginWait) { token = randomKey(); }
-
         if (!loginWait && !loggedIn) {
+            token = randomKey();
             heartRateElement.text = token;
             loginButtonElement.style.display = "inline";
         } else if (loginWait && !loggedIn) {
@@ -124,7 +123,7 @@ if (HeartRateSensor) {
     hrm.start();
 
 } else {
-    console.log("This device does not have a HeartRateSeonsor!");
+    console.error("This device does not have a HeartRateSeonsor!");
 }
 
 // Toggle data transfer

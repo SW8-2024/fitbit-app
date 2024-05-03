@@ -4,7 +4,7 @@ import * as messaging from "messaging";
 let authToken = "";
 
 if (!companion.permissions.granted("access_internet")) {
-    console.log("We're not allowed to access the internet!");
+    console.error("We're not allowed to access the internet!");
 }
 
 // TODO: Delete
@@ -83,7 +83,7 @@ async function login(api, watchKey) {
 
 messaging.peerSocket.addEventListener("message", async (evt) => {
     if (evt.data.login) {
-        console.error("Login event received: " + evt.data.token);
+        console.log("Login event received: " + evt.data.token);
         const res = await login("https://chillchaser.ovh/api/watch/login", evt.data.token);
         
         // Setting authToken to the received value
@@ -91,6 +91,6 @@ messaging.peerSocket.addEventListener("message", async (evt) => {
         messaging.peerSocket.send(res); //TODO: Dont need to send the token back to the watch
     } else {
         const res = await postHeartRate("https://chillchaser.ovh/api/DataCollection/heartRate", evt.data);
-        console.error(`Post ${JSON.stringify(evt.data)} ${res.status} ${res.msg}`);
+        console.log(`Post ${JSON.stringify(evt.data)} ${res.status} ${res.msg}`);
     }
 });
