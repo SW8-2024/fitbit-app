@@ -48,13 +48,12 @@ messaging.peerSocket.addEventListener("message", async (evt) => {
 
 function randomKey() {
     let key = new Uint16Array(1);
-    getRandomValues(key);
 
     while (Number(key).toString().length < 5) { 
         getRandomValues(key);
     }
 
-    return key;
+    return Number(key).toString();
 }
 
 function formatTime(date) {
