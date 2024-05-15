@@ -88,7 +88,7 @@ function sendHeartRateData(heartRate) {
 
     const data = {
         bpm: heartRate,
-        dateTime: new Date(dateTimeNow.getTime() - (dateTimeNow.getTimezoneOffset() * 60000)).toISOString()
+        dateTime: new Date(dateTimeNow.getTime()).toISOString()
     }
     
     if (messaging.peerSocket.readyState === messaging.peerSocket.OPEN) {
