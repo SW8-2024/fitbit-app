@@ -7,10 +7,6 @@ if (!companion.permissions.granted("access_internet")) {
     console.error("We're not allowed to access the internet!");
 }
 
-// TODO: Delete
-// Used for testing
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
 async function postHeartRate(api, data) {
     return fetch(api, {
         method: "POST",
@@ -88,9 +84,13 @@ messaging.peerSocket.addEventListener("message", async (evt) => {
         
         // Setting authToken to the received value
         authToken = res.msg;
-        messaging.peerSocket.send(res); //TODO: Dont need to send the token back to the watch
+        messaging.peerSocket.send(res);
     } else {
         const res = await postHeartRate("https://chillchaser.ovh/api/DataCollection/heartRate", evt.data);
         console.log(`Post ${JSON.stringify(evt.data)} ${res.status} ${res.msg}`);
+        
+        if (res.status != 200) {
+            messaging.peerSocket.send(res);
+        }
     }
 });
