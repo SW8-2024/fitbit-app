@@ -17,9 +17,8 @@ const loginButtonElement = document.getElementById("loginButton");
 let sendingData = false;
 let loggedIn = false;
 let loginWait = false;
+let heartRate = "";
 let token = "";
-
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 if (!appbit.permissions.granted("access_heart_rate")) {
     console.error("We're not allowed to read a users' heart rate!");
@@ -80,6 +79,22 @@ function formatTime(date) {
 clock.granularity = "seconds";
 clock.addEventListener("tick", (evt) => {
     if (loggedIn) { clockElement.text = formatTime(evt.date); }
+
+    if (!loginWait && !loggedIn) {
+        token = randomKey();
+        heartRateElement.text = token;
+        loginButtonElement.style.display = "inline";
+    } else if (loginWait && !loggedIn) {
+        heartRateElement.text = token;
+        loginButtonElement.style.display = "none";
+        statusElement.text = "Write key in app to pair.."
+    } else {
+        heartRateElement.text = heartRate;
+        if (!sendingData) {
+            backgroundElement.style.fill = "red";
+            statusElement.text = "Tab to send data";
+        }
+    }
 });
 
 // Heart Rate
@@ -97,25 +112,11 @@ function sendHeartRateData(heartRate) {
 }
 
 if (HeartRateSensor) {
-    const hrm = new HeartRateSensor({ frequency: 1});
+    const hrm = new HeartRateSensor({ frequency: 1, batch: 10 });
+
     hrm.addEventListener("reading", () => {
-        if (!loginWait && !loggedIn) {
-            token = randomKey();
-            heartRateElement.text = token;
-            loginButtonElement.style.display = "inline";
-        } else if (loginWait && !loggedIn) {
-            heartRateElement.text = token;
-            loginButtonElement.style.display = "none";
-            statusElement.text = "Write key in app to pair.."
-        } else {
-            heartRateElement.text = hrm.heartRate;
-            if (sendingData) {
-                sendHeartRateData(hrm.heartRate); 
-            } else {
-                backgroundElement.style.fill = "red";
-                statusElement.text = "Tab to send data";
-            }
-        }
+        heartRate = hrm.heartRate;
+        if (sendingData) { sendHeartRateData(heartRate) }
     });
 
     hrm.start();
