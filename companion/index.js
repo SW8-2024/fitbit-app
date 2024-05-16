@@ -88,6 +88,9 @@ messaging.peerSocket.addEventListener("message", async (evt) => {
     } else {
         const res = await postHeartRate("https://chillchaser.ovh/api/DataCollection/heartRate", evt.data);
         console.log(`Post ${JSON.stringify(evt.data)} ${res.status} ${res.msg}`);
-        messaging.peerSocket.send(res);
+        
+        if (res.status != 200) {
+            messaging.peerSocket.send(res);
+        }
     }
 });
