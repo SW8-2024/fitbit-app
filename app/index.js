@@ -39,6 +39,7 @@ messaging.peerSocket.addEventListener("message", async (evt) => {
         console.log("Logged in: " + evt.data.status + " " + evt.data.msg);
     } else {
         loggedIn = false;
+        sendingData = false;
         console.log("Not logged in: " + evt.data.status + " " + evt.data.msg);
     }
 
@@ -78,11 +79,16 @@ function formatTime(date) {
 // Clock
 clock.granularity = "seconds";
 clock.addEventListener("tick", (evt) => {
-    if (loggedIn) { clockElement.text = formatTime(evt.date); }
+    if (loggedIn) { 
+        clockElement.text = formatTime(evt.date); 
+    } else {
+        clockElement.text = ""; 
+    }
 
     if (!loginWait && !loggedIn) {
         token = randomKey();
         heartRateElement.text = token;
+        backgroundElement.style.fill = "blue";
         loginButtonElement.style.display = "inline";
     } else if (loginWait && !loggedIn) {
         heartRateElement.text = token;
